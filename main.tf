@@ -14,28 +14,28 @@ provider "google-beta" {
 # Create networking
 resource "google_compute_network" "private_network" {
   provider = google-beta
-  name = "dtrace-network"
+  name = "dtrack-network"
 }
-resource "google_compute_global_address" "dtrace_address" {
+resource "google_compute_global_address" "dtrack_address" {
   provider = google-beta
-  name          = "dtrace-address"
+  name          = "dtrack-address"
   purpose       = "VPC_PEERING"
   address_type  = "INTERNAL"
   prefix_length = 16
   network       = google_compute_network.private_network.self_link
 }
-resource "google_service_networking_connection" "dtrace_net" {
+resource "google_service_networking_connection" "dtrack_net" {
   provider = google-beta
   network = google_compute_network.private_network.self_link
   service = "servicenetworking.googleapis.com"
   reserved_peering_ranges = [
-    google_compute_global_address.dtrace_address.name,
+    google_compute_global_address.dtrack_address.name,
   ]
 }
 
 # Create CloudSQL database
-resource "google_sql_database" "dtrace-master" {
-  name     = "dtrace-master-db"
+resource "google_sql_database" "dtrack-master" {
+  name     = "dtrack-master-db"
   instance = google_sql_database_instance.cloudsql-db-master.name
 }
 resource "google_sql_database_instance" "cloudsql-db-master" {
@@ -43,7 +43,7 @@ resource "google_sql_database_instance" "cloudsql-db-master" {
   database_version = var.database_version
   region           = var.GCP_REGION
 
-  depends_on = [google_service_networking_connection.dtrace_net]
+  depends_on = [google_service_networking_connection.dtrack_net]
 
   settings {
     tier = "db-f1-micro"
@@ -64,6 +64,12 @@ resource "google_sql_user" "users" {
   name     = var.gcp_sql_root_user_name
   instance = google_sql_database_instance.cloudsql-db-master.name
   password = var.gcp_sql_root_user_pw
+}
+
+# Create client certificate
+resource "google_sql_ssl_cert" "client_cert" {
+  common_name = "dtrack-client"
+  instance    = google_sql_database_instance.cloudsql-db-master.name
 }
 
 # Create GKE cluster

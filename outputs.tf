@@ -2,12 +2,24 @@ output "connection_name" {
   value = google_sql_database_instance.cloudsql-db-master.connection_name
 }
 
+output "service_account" {
+  value = google_sql_database_instance.cloudsql-db-master.service_account_email_address
+}
+
 output "cloudsql_ip" {
   value = google_sql_database_instance.cloudsql-db-master.ip_address.0.ip_address
 }
 
-output "cloudsql_cert" {
-  value = google_sql_database_instance.cloudsql-db-master.server_ca_cert.0.cert
+output "cloudsql_key" {
+  value = google_sql_ssl_cert.client_cert.private_key
+}
+
+output "cloudsql_server_cert" {
+  value = google_sql_ssl_cert.client_cert.server_ca_cert
+}
+
+output "cloudsql_client_cert" {
+  value = google_sql_ssl_cert.client_cert.cert
 }
 
 output "common_name" {
